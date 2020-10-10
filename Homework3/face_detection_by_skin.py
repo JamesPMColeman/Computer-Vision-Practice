@@ -18,5 +18,10 @@
 	#
 
 # Imports
-# Helper methods
 
+# Helper methods
+# Read in the images, convert them to RGB and display
+# Use a color mask to isolate skin in normal light image
+# Convert low light image to Lumens image, remove background
+# Use lumens image as a mask on lowlight image
+# Isolate skin of low light image
