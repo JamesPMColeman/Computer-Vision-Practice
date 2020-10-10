@@ -79,19 +79,19 @@ max_sum = max_of_three(red_sum.max(), gre_sum.max(), blu_sum.max())
 
 red_hist = red_freq * 255 / max_freq
 red_cdf = red_sum * 255 / max_sum
-# pyplot.plot(red_cdf, color='m')
-# pyplot.plot(red_hist, color='r')
+pyplot.plot(red_cdf, color='m')
+pyplot.plot(red_hist, color='r')
 
 gre_hist = gre_freq * 255 / max_freq
 gre_cdf = gre_sum * 255 / max_sum
-# pyplot.plot(gre_cdf, color='y')
-# pyplot.plot(gre_hist, color='g')
+pyplot.plot(gre_cdf, color='y')
+pyplot.plot(gre_hist, color='g')
 
 blu_hist = blu_freq * 255 / max_freq
 blu_cdf = blu_sum * 222 / max_sum
-# pyplot.plot(blu_cdf, color='k')
-# pyplot.plot(blu_hist, color='b')
-# pyplot.show()
+pyplot.plot(blu_cdf, color='k')
+pyplot.plot(blu_hist, color='b')
+pyplot.show()
 
 	# Apply cdf to the all pixel intensity
 

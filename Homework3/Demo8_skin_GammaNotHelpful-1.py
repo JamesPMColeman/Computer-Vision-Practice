@@ -81,11 +81,14 @@ skin = skin_rgb_threshold(src1)
 plt.figure()
 plt.title('skin1 detected')
 plt.imshow(cv.cvtColor(skin,cv.COLOR_BGR2RGB))
+plt.show()
 
 src = cv.imread("face_dark.bmp", cv.IMREAD_COLOR)
 plt.figure()
 plt.title('BGR imread from opencv')
-plt.imshow(src ) 
+plt.imshow(src )
+plt.show()
+ 
 #gamma = luv_space_gamma(src, 0.6)
 luv = cv.cvtColor(src, cv.COLOR_BGR2Luv)
 #// extract luminance channel
@@ -103,10 +106,12 @@ gamma = cv.cvtColor(luv, cv.COLOR_LUV2BGR)
 plt.figure()
 plt.title('rgb')
 plt.imshow(cv.cvtColor(src,cv.COLOR_BGR2RGB)) 
+plt.show()
 
 plt.figure()
 plt.title('rgb face_gama 0.6')
 plt.imshow(cv.cvtColor(gamma,cv.COLOR_BGR2RGB)) 
+plt.show()
 
 # detect the skin after gamma 
 rgb = cv.cvtColor(luv, cv.COLOR_LUV2BGR)
@@ -114,3 +119,5 @@ skin = skin_rgb_threshold(rgb)
 plt.figure()
 plt.title('skin detected')
 plt.imshow(cv.cvtColor(skin,cv.COLOR_BGR2RGB))
+plt.show()
+

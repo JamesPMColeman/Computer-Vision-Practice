@@ -7,7 +7,7 @@
 #                                                               #
 #===============================================================#
 
-    #              >>>>>>>>>> Goals <<<<<<<<<<
+    #          >>>>>>>>>> Goals <<<<<<<<<<
     #
     #   1. Detect skin in normal and low light images
     #   2. Remove the background of the low light image
@@ -31,17 +31,56 @@ def show(image, title):
     pyplot.imshow(image)
     pyplot.show()
 
-# Read in the images, convert them to RGB and display
-normal_light = cv2.imread('face_good.bmp')
-low_light    = cv2.imread('face_dark.bmp')
+# List out all cv2 color conversions
+## This is based on code from Rebecca Stone's article 'Image
+## Segmentation Using Color Spaces in OpenCV + Python' on 
+## realpython.com
+transformations = [i for i in dir(cv2) if i.startswith('COLOR_')]
+for i in transformations:
+	pass ## print(i)
 
-normal_light = cv2.cvtColor(normal_light, cv2.COLOR_BGR2RGB)
-low_light    = cv2.cvtColor(low_light, cv2.COLOR_BGR2RGB)
+# Read in the images, convert them to RGB and display
+nrm = cv2.imread('face_good.bmp')
+low = cv2.imread('face_dark.bmp')
+
+normal_light = cv2.cvtColor(nrm, cv2.COLOR_BGR2RGB)
+low_light    = cv2.cvtColor(low, cv2.COLOR_BGR2RGB)
 
 show(normal_light, "Normal Light")
-show(low_light, "Low Light")
+## show(low_light, "Low Light")
 
 # Use a color mask to isolate skin in normal light image
+blue  = nrm[:,:,0].astype(numpy.int16)
+green = nrm[:,:,1].astype(numpy.int16) 
+red   = nrm[:,:,2].astype(numpy.int16)
+
+mask = (red > 96) & (green > 40) & (blue > 10) &                \
+	   ((nrm.max() - nrm.min()) > 15) & 	    \
+	   (numpy.abs(red - green) > 15) &							\
+	   (red > green) &											\
+	   (red > blue) 
+
+skin_nrm = nrm * mask.reshape(mask.shape[0], mask.shape[1], 1)
+skin_normal_light = cv2.cvtColor(skin_nrm, cv2.COLOR_BGR2RGB)
+
+show(skin_normal_light, "Normal light skin detection")
+
 # Convert low light image to Lumens image, remove background
+lumens = cv2.cvtColor(low, cv2.COLOR_BGR2LUV)
+length, width, depth = lumens.shape
+show(lumens, "Low-light image in Lumens")
+
+## Create a histogram of the lumens
+histogram = numpy.zeros(256)
+
+for i in range(length):
+	for j in range(width):
+		lum = low[i,j,0] * .299 +								\
+			  low[i,j,1] * .587 +								\
+			  low[i,j,2] * .114
+		histogram[int(lum)] = histogram[int(lum)] + 1 
+
+pyplot.plot(histogram)
+pyplot.show()
 # Use lumens image as a mask on lowlight image
 # Isolate skin of low light image
