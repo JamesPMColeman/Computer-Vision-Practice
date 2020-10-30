@@ -2,8 +2,8 @@
 #                                                               #
 #   James Coleman                                               #
 #   CS 3150                                                     #
-#   Homework 2 part one                                         #
-#   September 15th                                              #
+#   Homework 3		                                            #
+#   October 10th		                                        #
 #                                                               #
 #===============================================================#
 
@@ -55,7 +55,7 @@ green = nrm[:,:,1].astype(numpy.int16)
 red   = nrm[:,:,2].astype(numpy.int16)
 
 mask = (red > 96) & (green > 40) & (blue > 10) &                \
-	   ((nrm.max() - nrm.min()) > 15) & 	    \
+	   ((nrm.max() - nrm.min()) > 15) & 	    				\
 	   (numpy.abs(red - green) > 15) &							\
 	   (red > green) &											\
 	   (red > blue) 
