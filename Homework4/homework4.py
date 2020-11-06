@@ -28,11 +28,15 @@ def show(image, title):
     with pyplot """
 	pyplot.figure()
 	pyplot.title(title)
-	pyplot.imshow(image)
+	pyplot.imshow(image, cmap="gray")
 	pyplot.show()
 
 def gaussian_noise(image):
-	pass
+	""" Creates a gaussian noise corruption of image """
+	l, w = image.shape[:2]
+	sigma = 10
+	noise = sigma * numpy.random.randn(l, w)
+	return image + noise
 
 def salt_pepper_noise(image):
 	pass
@@ -46,10 +50,13 @@ def gamma_correction(image):
 def get_original(file_name):
 	""" Acquire and adjust the original image """
 	original = cv2.imread(file_name)
+	original = cv2.cvtColor(original, cv2.COLOR_BGR2GRAY)
 	return original
 
 
 if __name__ == "__main__":
 	image_file = "lena_g.bmp"
 	original = get_original(image_file)
+	gaussian = gaussian_noise(original)
 	show(original, "Original")
+	show(gaussian, "Gaussian")
