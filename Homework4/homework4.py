@@ -24,12 +24,20 @@ import numpy
 import random
 from matplotlib import pyplot
 
-def show(image, title):
-	""" Helper method to display a single image 
-    with pyplot """
-	pyplot.figure()
-	pyplot.title(title)
-	pyplot.imshow(image, cmap="gray")
+def show(im_list):
+	""" Show input (filtered image) compared to the original
+    gray scale image """
+	pyplot.figure(figsize=(12,6))
+	i = 1
+	pyplot.subplot(1, len(im_list) + 1, i)
+	pyplot.title('Original')
+	pyplot.imshow(im_list[0], cmap="gray")
+	i += 1
+	for im in im_list:
+		pyplot.subplot(1, len(im_list) + 1, i)
+		pyplot.title(im[1])
+		pyplot.imshow(im[0], cmap='gray')
+		i += 1
 	pyplot.show()
 
 def gaussian_noise(image):
@@ -71,10 +79,12 @@ def gamma_correction(image):
 	return gamma
 
 def quality_by_PSNR(original, altered):
-	mean_square = float(quality_by_MSE(original, altered))
-	if (mean_square == 0): 
-		return('inf')
-	return str(20 * math.log10(255 / math.sqrt(mean_square)))
+	for a in altered:
+		mean_square = numpy.mean((original - a) ** 2)
+		if (mean_square == 0):
+			yield('inf')
+		yield str(20 * math.log10(255 / math.sqrt(mean_square)))
+
 
 def quality_by_MSE(original, altered):
 	return str( numpy.mean((original - altered) ** 2))
@@ -116,19 +126,16 @@ def get_original(file_name):
 
 if __name__ == "__main__":
 	image_file = "lena_g.bmp"
-	original = get_original(image_file)
-	gaussian = gaussian_noise(original)
-	salt_pep = salt_pepper_noise(original)
-	contrast = contrast_stretch(original)
-	gamma_im = gamma_correction(original)
+	images = []
 
-	psnr = quality_by_PSNR(original, gaussian)
-	mse = quality_by_MSE(original, gaussian)
-	ssim = quality_by_SSIM(original, gaussian)
+	images.append((get_original(image_file), "Original"))
+	images.append((gaussian_noise(images[0]), "Gaussian"))
+	images.append((salt_pepper_noise(images[0]), "Salt and Pepper"))
+	images.append((contrast_stretch(images[0]), "Contrast Stretch"))
+	images.append((gamma_correction(images[0]), "Gamma Correction"))
 
-	show(original, "Original")
-	show(gaussian, "PSNR: " + str(psnr) + " MSE: " + str(mse) +  
-				   " SSIM: " + str(ssim))
-	show(salt_pep, "Salt and Pepper")
-	show(contrast, "Contrast stretch")
-	show(gamma_im, "Gamma correction")
+	psnr = quality_by_PSNR(images[0], images)
+	mse = quality_by_MSE(images[0], images)
+	ssim = quality_by_SSIM(images[0], images)
+
+	show(images)
