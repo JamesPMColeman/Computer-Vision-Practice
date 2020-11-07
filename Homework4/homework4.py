@@ -71,16 +71,41 @@ def gamma_correction(image):
 	return gamma
 
 def quality_by_PSNR(original, altered):
-	mean_square = numpy.mean((original, altered))
+	mean_square = float(quality_by_MSE(original, altered))
 	if (mean_square == 0): 
 		return('inf')
 	return str(20 * math.log10(255 / math.sqrt(mean_square)))
 
 def quality_by_MSE(original, altered):
-	pass
+	return str( numpy.mean((original - altered) ** 2))
 
 def quality_by_SSIM(original, altered):
-	pass
+	C1 = 6.5025
+	C2 = 58.5225
+	
+	original = original.astype(numpy.float64)
+	altered = altered.astype(numpy.float64)
+	kernel = cv2.getGaussianKernel(11, 1.5)
+	window = numpy.outer(kernel, kernel.transpose())
+	
+	mu_ori = cv2.filter2D(original, -1, window)[5:-5, 5:-5]     
+	mu_alt = cv2.filter2D(altered, -1, window)[5:-5, 5:-5]
+	mu_ori_sq = mu_ori ** 2
+	mu_alt_sq = mu_alt ** 2
+	mu_dif = mu_ori * mu_alt
+	
+	sigma_ori_sq = cv2.filter2D(original**2, -1, window)[5:-5, 5:-5]
+	sigma_alt_sq = cv2.filter2D(altered**2, -1, window)[5:-5, 5:-5]
+	sigma_dif = cv2.filter2D(original * altered, -1, window)[5:-5, 5:-5]
+
+	sigma_ori_sq = sigma_ori_sq - mu_ori_sq
+	sigma_alt_sq = sigma_alt_sq - mu_alt_sq
+	sigma_dif = sigma_dif - mu_dif	
+
+	ssim_map = ((2 * mu_dif + C1) * (2 * sigma_dif + C2)) / \
+		   ((mu_ori_sq + mu_alt_sq + C1) * (sigma_ori_sq + sigma_alt_sq + C2))
+
+	return ssim_map.mean()
 
 def get_original(file_name):
 	""" Acquire and adjust the original image """
@@ -98,9 +123,12 @@ if __name__ == "__main__":
 	gamma_im = gamma_correction(original)
 
 	psnr = quality_by_PSNR(original, gaussian)
+	mse = quality_by_MSE(original, gaussian)
+	ssim = quality_by_SSIM(original, gaussian)
 
 	show(original, "Original")
-	show(gaussian, "Gaussian")
+	show(gaussian, "PSNR: " + str(psnr) + " MSE: " + str(mse) +  
+				   " SSIM: " + str(ssim))
 	show(salt_pep, "Salt and Pepper")
 	show(contrast, "Contrast stretch")
 	show(gamma_im, "Gamma correction")
