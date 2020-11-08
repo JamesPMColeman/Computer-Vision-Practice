@@ -24,18 +24,20 @@ import numpy
 import random
 from matplotlib import pyplot
 
-def show(im_list, quality):
+def show(im_list, quality_type, quality):
 	""" Show input (filtered image) compared to the original
     gray scale image """
 	pyplot.figure(figsize=(12,8))
 	i = 1
 	original = im_list[0]
+	qual1 = float(quality.pop(0))
 	pyplot.subplot(2, 4, 1)
-	pyplot.title(original[1] + "\n" + quality.pop(0))
+	pyplot.title(f"{original[1]}\n{quality_type}: {qual1:.4f}")
 	pyplot.imshow(original[0], cmap="gray")
 	for im in im_list[1 - len(im_list):]:
+		qual = float(quality.pop(0))
 		pyplot.subplot(2, 4, 4 + i)
-		pyplot.title(im[1] + "\n" + quality.pop(0))
+		pyplot.title(f"{im[1]}\n{quality_type}: {qual:.4f}")
 		pyplot.imshow(im[0], cmap='gray')
 		i += 1
 	pyplot.show()
@@ -89,36 +91,37 @@ def quality_by_PSNR(original, altered):
 
 def quality_by_MSE(original, altered):
 	for a in altered:
-		yield str( numpy.mean((original[0] - a[0]) ** 2))
+		ori = original[0].astype(numpy.float64)
+		alt = a[0].astype(numpy.float64)
+		yield numpy.mean((ori - alt) ** 2)
 
 def quality_by_SSIM(original, altered):
 	C1 = 6.5025
 	C2 = 58.5225
 	
-	for a in altered:
-		original = original[0].astype(numpy.float64)
-		a = a[0].astype(numpy.float64)
-		kernel = cv2.getGaussianKernel(11, 1.5)
-		window = numpy.outer(kernel, kernel.transpose())
+	original = original[0].astype(numpy.float64)
+	altered = altered[0].astype(numpy.float64)
+	kernel = cv2.getGaussianKernel(11, 1.5)
+	window = numpy.outer(kernel, kernel.transpose())
 	
-		mu_ori = cv2.filter2D(original, -1, window)[5:-5, 5:-5]     
-		mu_alt = cv2.filter2D(a, -1, window)[5:-5, 5:-5]
-		mu_ori_sq = mu_ori ** 2
-		mu_alt_sq = mu_alt ** 2
-		mu_dif = mu_ori * mu_alt
+	mu_ori = cv2.filter2D(original, -1, window)[5:-5, 5:-5]     
+	mu_alt = cv2.filter2D(altered, -1, window)[5:-5, 5:-5]
+	mu_ori_sq = mu_ori ** 2
+	mu_alt_sq = mu_alt ** 2
+	mu_dif = mu_ori * mu_alt
 	
-		sigma_ori_sq = cv2.filter2D(original ** 2, -1, window)[5:-5, 5:-5]
-		sigma_alt_sq = cv2.filter2D(a ** 2, -1, window)[5:-5, 5:-5]
-		sigma_dif = cv2.filter2D(original * a, -1, window)[5:-5, 5:-5]
+	sigma_ori_sq = cv2.filter2D(original ** 2, -1, window)[5:-5, 5:-5]
+	sigma_alt_sq = cv2.filter2D(altered ** 2, -1, window)[5:-5, 5:-5]
+	sigma_dif = cv2.filter2D(original * altered, -1, window)[5:-5, 5:-5]
 
-		sigma_ori_sq = sigma_ori_sq - mu_ori_sq
-		sigma_alt_sq = sigma_alt_sq - mu_alt_sq
-		sigma_dif = sigma_dif - mu_dif	
+	sigma_ori_sq = sigma_ori_sq - mu_ori_sq
+	sigma_alt_sq = sigma_alt_sq - mu_alt_sq
+	sigma_dif = sigma_dif - mu_dif	
 
-		ssim_map = ((2 * mu_dif + C1) * (2 * sigma_dif + C2)) / \
+	ssim_map = ((2 * mu_dif + C1) * (2 * sigma_dif + C2)) / \
 		((mu_ori_sq + mu_alt_sq + C1) * (sigma_ori_sq + sigma_alt_sq + C2))
 
-		yield ssim_map.mean()
+	return ssim_map.mean()
 
 def generator_to_list(gen):
 	l = []
@@ -145,12 +148,13 @@ if __name__ == "__main__":
 
 	psnr = quality_by_PSNR(images[0], images)
 	mse = quality_by_MSE(images[0], images)
-	ssim = quality_by_SSIM(images[0], images)
+	ssim = []
 
 	psnr = generator_to_list(psnr)
 	mse = generator_to_list(mse)
-	# ssim = generator_to_list(ssim)
+	for i in images:
+		ssim.append(quality_by_SSIM(images[0], i))
 
-	show(images, psnr)
-	show(images, mse)
-	# show(images, ssim)
+	show(images, "PSNR", psnr)
+	show(images, "MSE", mse)
+	show(images, "SSIM", ssim)
