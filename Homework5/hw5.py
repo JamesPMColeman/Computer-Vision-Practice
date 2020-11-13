@@ -16,6 +16,23 @@
 		#
 		#
 
+# imports
+import cv2
+import numpy
+from matplotlib import pyplot
+
+def show(im_list, quality_type, quality):
+    """ Show input (filtered image) compared to the original
+    gray scale image """
+    pyplot.figure(figsize=(12,8))
+    pyplot.subplot(2, 1, 1)
+    pyplot.title(f"{quality}\n{quality_type}")
+    pyplot.imshow(im_list[0], cmap="gray")
+    pyplot.subplot(2, 1, 2)
+    pyplot.title(f"{quality_type}")
+    pyplot.imshow(im_list[1], cmap='gray')
+    pyplot.show()
+
 
 def quality_by_PSNR(original, altered):
     for a in altered:
@@ -82,11 +99,11 @@ if __name__ == "__main__":
 	]
 
 	for i in image_list:
-
-		image = get_original(i)
-		quality = quality_by_MSE(image)
-		sal = saliency(image)
-		show(image, quality + sal)
+		images = []
+		images.append(get_original(i))
+		# quality = quality_by_MSE(i)
+		images.append(saliency(images[0]))
+		show(images, "n", "o")
 	
 
 	
