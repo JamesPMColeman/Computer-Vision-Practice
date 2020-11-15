@@ -25,14 +25,18 @@ def show(im_list, quality_type, quality):
     """ Show input (filtered image) compared to the original
     gray scale image """
     pyplot.figure(figsize=(12,8))
-    pyplot.subplot(2, 1, 1)
-    pyplot.title(f"{quality}\n{quality_type}")
-    pyplot.imshow(im_list[0], cmap="gray")
-    pyplot.subplot(2, 1, 2)
-    pyplot.title(f"{quality_type}")
-    pyplot.imshow(im_list[1], cmap='gray')
+    for i in range(1, len(im_list) + 1):
+        pyplot.subplot(1, len(im_list), i)
+        pyplot.title(f"{quality[i - 1]}\n{quality_type}")
+        pyplot.imshow(im_list[i - 1], cmap="gray")
     pyplot.show()
 
+def gaussian_noise(image):
+    """ Creates a gaussian noise corruption of image """
+    l, w = image.shape[:2]
+    sigma = 10
+    noise = sigma * numpy.random.randn(l, w)
+    return image + noise
 
 def quality_by_PSNR(original, altered):
     for a in altered:
@@ -100,10 +104,14 @@ if __name__ == "__main__":
 
 	for i in image_list:
 		images = []
+		qualities = []
 		images.append(get_original(i))
-		# quality = quality_by_MSE(i)
 		images.append(saliency(images[0]))
-		show(images, "n", "o")
+		print(images[1].max())
+		images.append(gaussian_noise(images[0]))
+		qualities = list(quality_by_MSE(images[0], images))
+		
+		show(images, "n", qualities)
 	
 
 	
