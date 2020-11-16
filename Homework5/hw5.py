@@ -1,90 +1,79 @@
 #=============================================================================#
-#																			  #
-#			James Coleman													  #
-#			CS 3150															  #
-#			Homework 5: Saliency											  #
-#			November 13th, 2020												  #
-#																			  #
-#																			  #
+#                                                                             #
+#           James Coleman                                                     #
+#           CS 3150                                                           #
+#           Homework 5: Saliency                                              #
+#           November 13th, 2020                                               #
+#                                                                             #
+#                                                                             #
 #=============================================================================#
 
-		#
-		# 	 >>>>>>>>>>>>>>> Goals <<<<<<<<<<<<<<<<
-		#
-		#		
-		#
-		#
-		#
+        #
+        #    >>>>>>>>>>>>>>> Goals <<<<<<<<<<<<<<<<
+        #
+        #       
+        #
+        #
+        #
 
 # imports
 import cv2
 import numpy
 from matplotlib import pyplot
 
-def show(im_list, quality_type, quality):
+def show(im_list, title, quality):
     """ Show input (filtered image) compared to the original
     gray scale image """
-    pyplot.figure(figsize=(12,8))
+    pyplot.figure(figsize=(10,7))
     for i in range(1, len(im_list) + 1):
-        pyplot.subplot(1, len(im_list), i)
-        pyplot.title(f"{quality[i - 1]}\n{quality_type}")
+        pyplot.subplot(2, 3, i)
+        pyplot.title(f"{title[i - 1]}\n{quality[i - 1]:.4f}")
         pyplot.imshow(im_list[i - 1], cmap="gray")
     pyplot.show()
 
-def gaussian_noise(image):
+def show_one(im):
+    pyplot.imshow(im, cmap="gray")
+    pyplot.show()
+
+def gaussian_noise(image, salience_map, threshold):
     """ Creates a gaussian noise corruption of image """
     l, w = image.shape[:2]
+    new_image = numpy.zeros((l, w))
     sigma = 10
     noise = sigma * numpy.random.randn(l, w)
-    return image + noise
+    for i in range(l):
+        for j in range(w):
+            if threshold(salience_map[i][j]):
+                new_image[i][j] = image[i][j] + noise[i][j]
+            else:
+                new_image[i][j] = image[i][j]
+    return new_image
 
-def quality_by_PSNR(original, altered):
-    for a in altered:
-        mean_square = numpy.mean((original[0] - a[0]) ** 2)
-        if (mean_square == 0):
-            yield('inf')
-        else :
-            yield str(20 * math.log10(255 / math.sqrt(mean_square)))
+def quality_MSE(original, altered):
+    ori = original.astype(numpy.float64)
+    alt = altered.astype(numpy.float64)
+    return numpy.mean((ori - alt) ** 2)
 
-def quality_by_MSE(original, altered):
-    for a in altered:
-        ori = original[0].astype(numpy.float64)
-        alt = a[0].astype(numpy.float64)
-        yield numpy.mean((ori - alt) ** 2)
-
-def quality_by_SSIM(original, altered):
-    C1 = 6.5025
-    C2 = 58.5225
-
-    original = original[0].astype(numpy.float64)
-    altered = altered[0].astype(numpy.float64)
-    kernel = cv2.getGaussianKernel(11, 1.5)
-    window = numpy.outer(kernel, kernel.transpose())
-
-    mu_ori = cv2.filter2D(original, -1, window)[5:-5, 5:-5]
-    mu_alt = cv2.filter2D(altered, -1, window)[5:-5, 5:-5]
-    mu_ori_sq = mu_ori ** 2
-    mu_alt_sq = mu_alt ** 2
-    mu_product = mu_ori * mu_alt
-
-    sigma_ori_sq = cv2.filter2D(original ** 2, -1, window)[5:-5, 5:-5]
-    sigma_alt_sq = cv2.filter2D(altered ** 2, -1, window)[5:-5, 5:-5]
-    sigma_product = cv2.filter2D(original * altered, -1, window)[5:-5, 5:-5]
-
-    sigma_ori_sq = sigma_ori_sq - mu_ori_sq
-    sigma_alt_sq = sigma_alt_sq - mu_alt_sq
-    sigma_product = sigma_product - mu_product
-
-    ssim_map = ((2 * mu_product + C1) * (2 * sigma_product + C2)) / \
-        ((mu_ori_sq + mu_alt_sq + C1) * (sigma_ori_sq + sigma_alt_sq + C2))
-
-    return ssim_map.mean()
+def salience_MSE(original, altered, salience_map):
+    l, w = original.shape[:2]
+    diff = numpy.zeros((l, w))
+    
+    ori = original.astype(numpy.float64)
+    alt = altered.astype(numpy.float64)
+    for i in range(l):
+        for j in range(w):
+            if salience_map[i][j] >= .08:
+                diff[i][j] = ori[i][j] - alt[i][j]
+            else:
+                diff[i][j] = 0
+        
+    return numpy.mean(diff ** 2)
 
 def saliency(image):
-	s = cv2.saliency.StaticSaliencySpectralResidual_create()
-	worked, saliency_image = s.computeSaliency(image)
+    s = cv2.saliency.StaticSaliencySpectralResidual_create()
+    worked, saliency_image = s.computeSaliency(image)
 
-	return saliency_image
+    return saliency_image
 
 def get_original(file_name):
     """ Acquire and adjust the original image """
@@ -94,25 +83,40 @@ def get_original(file_name):
 
 
 if __name__ == "__main__":
-	image_list = [
-		"Saliency0.jpg",
-		"Saliency1.jpeg",
-		"Saliency2.jpg",
-		"Saliency3.png",
-		"Saliency4.png",
-	]
+    image_list = [
+        "Saliency0.jpg",
+        "Saliency1.jpeg",
+        "Saliency2.jpg",
+        "Saliency3.png",
+        "Saliency4.png",
+    ]
+    image_titles = [
+        "Original",
+        "Saliency Map",
+        "Uniform Gaussian Noise",
+        "Consequential Noise",
+        "Inconsequential Noise",
+    ]
 
-	for i in image_list:
-		images = []
-		qualities = []
-		images.append(get_original(i))
-		images.append(saliency(images[0]))
-		print(images[1].max())
-		images.append(gaussian_noise(images[0]))
-		qualities = list(quality_by_MSE(images[0], images))
-		
-		show(images, "n", qualities)
-	
+    for i in image_list:
+        images = []
+        mse_qualities = []
+        mse_plus_saliency = []
+        images.append(get_original(i))
+        images.append(saliency(images[0]))
+        images.append(gaussian_noise(images[0], \
+                                     images[1], \
+                                     lambda i=i: True))
+        images.append(gaussian_noise(images[0], \
+                                     images[1], \
+                                     lambda i=i: i >= 0.1))
+        images.append(gaussian_noise(images[0], \
+                                     images[1], \
+                                     lambda i=i: i <= 0.1))
+        for im in images:
+            mse_qualities.append(quality_MSE(images[0], im))
+        show(images, image_titles, mse_qualities)
 
-	
-
+        for im in images:
+            mse_plus_saliency.append(salience_MSE(images[0], im, images[1]))
+        show(images, image_titles, mse_plus_saliency)
