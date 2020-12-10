@@ -55,7 +55,7 @@ def plot(image, c1, c2, c3, x, y, z):
 	
 
 # read input image
-wall = cv2.imread('./test3.jpg')
+wall = cv2.imread('./hold1.png')
 ## show(wall)
 length, width, depth = wall.shape
 
@@ -82,15 +82,15 @@ hue, sat, val = cv2.split(wall_hsv)
 ##show(saliency_wall, "gray")
 
 # use color mask to isolate holds
-yellow = (255, 255, 25)
-gray_yellow = (140, 120, 0)
+yellow = (255, 219, 41)
+gray_yellow = (220, 170, 0)
 
-yellow_swatche = numpy.full((10, 10, 3), yellow, dtype=numpy.uint8)
-gray_swatche = numpy.full((10, 10, 3), gray_yellow, dtype=numpy.uint8)
-show(yellow_swatche, "RGB")
-show(gray_swatche, "RGB")
+## yellow_swatche = numpy.full((10, 10, 3), yellow, dtype=numpy.uint8)
+## gray_swatche = numpy.full((10, 10, 3), gray_yellow, dtype=numpy.uint8)
+## show(yellow_swatche, "RGB")
+## show(gray_swatche, "RGB")
 
-yellow_mask = cv2.inRange(wall_hsv, gray_yellow, yellow)
+yellow_mask = cv2.inRange(wall, gray_yellow, yellow)
 yellow_holds = cv2.bitwise_and(wall, wall, mask=yellow_mask)
 
 pyplot.subplot(1, 2, 1)
