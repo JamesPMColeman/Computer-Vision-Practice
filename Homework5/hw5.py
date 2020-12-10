@@ -21,13 +21,13 @@ import cv2
 import numpy
 from matplotlib import pyplot
 
-def show(im_list, title, quality):
+def show(im_list, title, qual_type, quality):
     """ Show input (filtered image) compared to the original
     gray scale image """
     pyplot.figure(figsize=(10,7))
     for i in range(1, len(im_list) + 1):
         pyplot.subplot(2, 3, i)
-        pyplot.title(f"{title[i - 1]}\n{quality[i - 1]:.4f}")
+        pyplot.title(f"{title[i - 1]}\n{qual_type}: {quality[i - 1]:.4f}")
         pyplot.imshow(im_list[i - 1], cmap="gray")
     pyplot.show()
 
@@ -84,11 +84,11 @@ def get_original(file_name):
 
 if __name__ == "__main__":
     image_list = [
-        "Saliency0.jpg",
+    #    "Saliency0.jpg",
         "Saliency1.jpeg",
-        "Saliency2.jpg",
-        "Saliency3.png",
-        "Saliency4.png",
+    #    "Saliency2.jpg",
+    #    "Saliency3.png",
+    #    "Saliency4.png",
     ]
     image_titles = [
         "Original",
@@ -113,10 +113,12 @@ if __name__ == "__main__":
         images.append(gaussian_noise(images[0], \
                                      images[1], \
                                      lambda i=i: i <= 0.1))
+       # for im in images:
+       #     show_one(im)
         for im in images:
             mse_qualities.append(quality_MSE(images[0], im))
-        show(images, image_titles, mse_qualities)
+        show(images, image_titles, "MSE", mse_qualities)
 
         for im in images:
             mse_plus_saliency.append(salience_MSE(images[0], im, images[1]))
-        show(images, image_titles, mse_plus_saliency)
+        show(images, image_titles, "Salience MSE", mse_plus_saliency)
