@@ -55,7 +55,7 @@ def plot(image, c1, c2, c3, x, y, z):
 	
 
 # read input image
-wall = cv2.imread('./hold1.png')
+wall = cv2.imread('./test4.jpg')
 ## show(wall)
 length, width, depth = wall.shape
 
@@ -82,25 +82,39 @@ hue, sat, val = cv2.split(wall_hsv)
 ##show(saliency_wall, "gray")
 
 # use color mask to isolate holds
-yellow = (255, 219, 41)
-gray_yellow = (220, 170, 0)
+green_high = (160, 210, 120)
+green_low = (80, 130, 30)
+yellow_high = (255, 255, 75)
+yellow_low = (155, 120, 0)
+orange_high = (255, 90, 75)
+orange_low = (115, 50, 30)
+pink_high = (255, 95, 160)
+pink_low = (160, 40, 70)
+blue_high = (100, 155, 255)
+blue_low = (25, 45, 120)
+purple_high = (140, 70, 120)
+purple_low = (75, 40, 60)
 
-## yellow_swatche = numpy.full((10, 10, 3), yellow, dtype=numpy.uint8)
-## gray_swatche = numpy.full((10, 10, 3), gray_yellow, dtype=numpy.uint8)
+## yellow_swatche = numpy.full((10, 10, 3), yellow_high, dtype=numpy.uint8)
+## gray_swatche = numpy.full((10, 10, 3), yellow_low, dtype=numpy.uint8)
 ## show(yellow_swatche, "RGB")
 ## show(gray_swatche, "RGB")
 
-yellow_mask = cv2.inRange(wall, gray_yellow, yellow)
+green_mask = cv2.inRange(wall, green_low, green_high)
+green_holds = cv2.bitwise_and(wall, wall, mask=green_mask)
+yellow_mask = cv2.inRange(wall, yellow_low, yellow_high)
 yellow_holds = cv2.bitwise_and(wall, wall, mask=yellow_mask)
+orange_mask = cv2.inRange(wall, orange_low, orange_high)
+orange_holds = cv2.bitwise_and(wall, wall, mask=orange_mask)
+pink_mask = cv2.inRange(wall, pink_low, pink_high)
+pink_holds = cv2.bitwise_and(wall, wall, mask=pink_mask)
+blue_mask = cv2.inRange(wall, blue_low, blue_high)
+blue_holds = cv2.bitwise_and(wall, wall, mask=blue_mask)
+purple_mask = cv2.inRange(wall, purple_low, purple_high)
+purple_holds = cv2.bitwise_and(wall, wall, mask=purple_mask)
 
-pyplot.subplot(1, 2, 1)
-pyplot.imshow(yellow_mask, cmap="gray")
-pyplot.subplot(1, 2, 2)
-pyplot.imshow(yellow_holds)
-pyplot.show()
-
-show(yellow_mask, "gray")
-show(yellow_holds, "RGB")
+show(blue_mask, "gray")
+show(blue_holds, "RGB")
 
 # circle routes of a particular color
 
